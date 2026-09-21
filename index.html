@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Para Nicole</title>
+<style>
+  :root{
+    --bg-top:#0b1533;
+    --bg-bottom:#0b1533;
+  }
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg-top);
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  body{
+    display:flex;align-items:center;justify-content:center;
+    min-height:100%;
+    overflow:hidden;
+  }
+  #wrap{
+    width:100%;
+    max-width:900px;
+    aspect-ratio:1/1;
+    position:relative;
+  }
+  canvas{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c" width="900" height="900"></canvas>
+</div>
+<script>
+(function(){
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const ORIGIN_X = 450, ORIGIN_Y = 470; // turtle (0,0) -> canvas pixel
+
+  function toCanvas(x, y){ return [ORIGIN_X + x, ORIGIN_Y - y]; }
+
+  // ---- Motor "turtle" minimo ----
+  let tx = 0, ty = 0, heading = 0;
+  let penColor = 'black';
+  let fillColor = 'black';
+  let pensize = 7;
+  let pathPts = [];
+
+  function beginPath(){
+    pathPts = [];
+    pathPts.push(toCanvas(tx, ty));
+  }
+  function addPoint(){ pathPts.push(toCanvas(tx, ty)); }
+
+  function strokePath(){
+    if (pathPts.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(pathPts[0][0], pathPts[0][1]);
+    for (let i = 1; i < pathPts.length; i++) ctx.lineTo(pathPts[i][0], pathPts[i][1]);
+    ctx.strokeStyle = penColor;
+    ctx.lineWidth = pensize;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+  function fillPath(){
+    if (pathPts.length < 3) return;
+    ctx.beginPath();
+    ctx.moveTo(pathPts[0][0], pathPts[0][1]);
+    for (let i = 1; i < pathPts.length; i++) ctx.lineTo(pathPts[i][0], pathPts[i][1]);
+    ctx.closePath();
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+  }
+
+  function go(x, y){
+    strokePath();
+    tx = x; ty = y;
+    beginPath();
+  }
+  function setheading(deg){ heading = deg; }
+
+  function circle(radius, extent){
+    if (radius === 0 || extent === 0) return;
+    const steps = Math.max(8, Math.round(Math.abs(extent) / 1.5));
+    const stepAngle = extent / steps;
+    const dirSign = radius >= 0 ? 1 : -1;
+    for (let i = 0; i < steps; i++){
+      const hRad = heading * Math.PI / 180;
+      const leftX = -Math.sin(hRad), leftY = Math.cos(hRad);
+      const centerX = tx + radius * leftX;
+      const centerY = ty + radius * leftY;
+      const delta = dirSign * stepAngle;
+      const vx = tx - centerX, vy = ty - centerY;
+      const rad = delta * Math.PI / 180;
+      const nvx = vx * Math.cos(rad) - vy * Math.sin(rad);
+      const nvy = vx * Math.sin(rad) + vy * Math.cos(rad);
+      tx = centerX + nvx; ty = centerY + nvy;
+      heading = (heading + delta + 360) % 360;
+      addPoint();
+    }
+  }
+  function arco(direc, radio, ang){ setheading(direc); circle(radio, ang); }
+
+  function color(c){ penColor = c; fillColor = c; }
+  function fillcolor(c){ fillColor = c; }
+  function pensizeSet(n){ pensize = n; }
+
+  function begin_fill(){ beginPath(); }
+  function end_fill(){ fillPath(); strokePath(); pathPts = []; }
+
+  function dot(size, c){
+    const col = c || penColor;
+    const [cx, cy] = toCanvas(tx, ty);
+    ctx.beginPath();
+    ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+    ctx.fillStyle = col;
+    ctx.fill();
+  }
+
+  function write(text, align, font){
+    const [cx, cy] = toCanvas(tx, ty);
+    ctx.font = font;
+    ctx.fillStyle = penColor;
+    ctx.textAlign = align;
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, cx, cy);
+  }
+
+  // ---- Petalos (misma geometria que el script de Python) ----
+  function petalo1(dif, col){
+    fillcolor(col); begin_fill();
+    arco(19.4+dif, 16.55, 36.24);
+    arco(58.23+dif, 39.13, 19.06);
+    arco(76.16+dif, 78.56, 18.4);
+    arco(91.84+dif, 165.01, 25.11);
+    arco(113.29+dif, 63.02, 32.41);
+    arco(147.49+dif, 12.89, 46.29);
+    arco(198.79+dif, 16.08, 32.34);
+    arco(236.61+dif, 42, 19.38);
+    arco(260.39+dif, 142.41, 11.47);
+    arco(273.6+dif, 175.05, 21.41);
+    arco(294.1+dif, 91.55, 17.01);
+    arco(312.75+dif, 40.51, 19.1);
+    arco(335.49+dif, 14.52, 35.34);
+    end_fill();
+  }
+  function petalo2(dif, col){
+    fillcolor(col); begin_fill();
+    arco(33.87+dif, 87.78, 26.03);
+    arco(61.06+dif, 118.55, 26.52);
+    arco(84.19+dif, 175.12, 11.62);
+    arco(96.12+dif, 34.85, 23.06);
+    arco(120.12+dif, 10.40, 90);
+    arco(202.44+dif, 37.24, 24.37);
+    arco(226.81+dif, 118.29, 14.98);
+    arco(294.34+dif, -165.01, 22.51);
+    arco(274.56+dif, -78.56, 18.4);
+    arco(257.29+dif, -39.13, 19.06);
+    end_fill();
+  }
+  function petalo3(dif, col){
+    fillcolor(col); begin_fill();
+    arco(61.79+dif, -118.29, 7.49);
+    arco(104.98+dif, 52.05, 33.98);
+    arco(138.95+dif, 12.66, 104.98);
+    arco(327.02+dif, -69.44, 37.4);
+    end_fill();
+  }
+  function petalo4(dif, col){
+    fillcolor(col); begin_fill();
+    arco(54.3+dif, -118.29, 7.49);
+    arco(46.81+dif, -37.24, 24.37);
+    arco(130.31+dif, 30.28, 25.84);
+    arco(160.26+dif, 12.15, 61.81);
+    arco(221.49+dif, 54.59, 12.76);
+    arco(306.56+dif, -52.05, 21.59);
+    end_fill();
+  }
+  function flor(dif, x1,y1,x2,y2,x3,y3,x4,y4, c1, c2){
+    go(x1,y1); petalo1(dif, c1);
+    go(x2,y2); petalo2(dif, c2);
+    go(x3,y3); petalo3(dif, c2);
+    go(x4,y4); petalo4(dif, c1);
+  }
+
+  function draw(t){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#0b1533';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    color('black');
+    pensizeSet(7);
+
+    // Tallo y hojas
+    go(-32.98, -273.92);
+    arco(119.2, -722.53, 13.66);
+    arco(105.54, -940.73, 16.9);
+    go(-24.06, -262.26);
+    arco(93.61, -1196.71, 14.07);
+    go(3.56, -249.56);
+    arco(88.58, -622.34, 31.55);
+
+    pensizeSet(4);
+    fillcolor('SeaGreen');
+    go(12.91, -283.99); begin_fill();
+    arco(57.88, 975.08, 16.39);
+    arco(74.27, 6.20, 157.41);
+    arco(231.68, 579.02, 27.92);
+    arco(259.6, 7.27, 158.28);
+    end_fill();
+
+    go(-28.71, -266.66); begin_fill();
+    arco(88.05, 692.83, 25.07);
+    arco(113.12, 5.18, 157.34);
+    arco(270.46, 938.83, 18.39);
+    arco(288.85, 7.64, 159.19);
+    end_fill();
+
+    go(-18.47, -282.60); begin_fill();
+    arco(96.21, 326.86, 31.73);
+    arco(127.94, 5.56, 153.41);
+    arco(281.35, 501.08, 20.41);
+    arco(301.77, 6.36, 154.44);
+    end_fill();
+
+    fillcolor('LimeGreen');
+    go(-6.31, -268.99); begin_fill();
+    arco(73.43, 1017.87, 14.17);
+    arco(87.61, 6.01, 157.08);
+    arco(244.69, 469.17, 31.28);
+    arco(275.7, 6.45, 157.46);
+    end_fill();
+
+    go(-8.02, -285.56); begin_fill();
+    arco(52.56, 381.13, 26.67);
+    arco(79.23, 6.86, 145.51);
+    arco(224.73, 236.72, 44.06);
+    arco(268.79, 5.47, 143.76);
+    end_fill();
+
+    go(-43.74, -282.89); begin_fill();
+    arco(101.25, 312.61, 33.09);
+    arco(134.34, 5.53, 142.29);
+    arco(276.63, 243.40, 43.13);
+    arco(319.76, 4.88, 141.49);
+    end_fill();
+
+    // Zarcillo
+    pensizeSet(3);
+    color('SeaGreen');
+    go(2, 150);
+    setheading(70);
+    circle(55, 200);
+    circle(-35, 190);
+    strokePath();
+
+    // Flores (tonos amarillos/dorados) - con un ligero mecido animado
+    const sway1 = Math.sin(t * 1.1) * 6;
+    const sway2 = Math.sin(t * 1.3 + 1.5) * 5;
+    const sway3 = Math.sin(t * 0.9 + 3.0) * 6;
+
+    flor(0,      -6.51+sway1, 30.43,   1.64+sway1, 36.70,   -6+sway1, 136.45,   2.17+sway1, 149.56, 'Gold', 'Goldenrod');
+    flor(-29.4,  103.65+sway2, 73.72,  117.8+sway2, 79.99,  156.16+sway2, 167.74, 170+sway2, 177,   'Yellow', 'Khaki');
+    flor(12.14, -132.53+sway3, 159.47, -124.38+sway3, 169.74, -152.02+sway3, 261.49, -148+sway3, 278, 'LemonChiffon', 'Gold');
+
+    // Estrellitas de fondo (posiciones fijas para que sea igual cada vez)
+    const seedStars = [
+      [-410,320,3,'white'],[120,410,2,'lightyellow'],[300,120,4,'white'],
+      [-260,60,3,'lightyellow'],[380,-40,2,'white'],[-80,400,3,'white'],
+      [200,-150,4,'lightyellow'],[-350,-120,2,'white'],[40,320,3,'lightyellow'],
+      [260,300,2,'white'],[-180,-230,3,'lightyellow'],[420,220,3,'white'],
+      [-420,-30,4,'white'],[150,60,2,'lightyellow'],[-40,-330,3,'white'],
+      [320,-260,2,'lightyellow'],[-300,220,3,'white'],[10,180,2,'lightyellow'],
+      [-150,380,4,'white'],[220,-350,3,'white'],[-410,150,2,'lightyellow'],
+      [80,-250,3,'white'],[350,40,4,'lightyellow'],[-230,-380,2,'white'],
+      [180,220,3,'lightyellow'],[-60,120,2,'white'],[290,-100,3,'white'],
+      [-330,300,4,'lightyellow'],[60,-380,2,'white'],[400,320,3,'lightyellow'],
+      [-140,-60,2,'white'],[240,180,4,'white'],[-260,-250,3,'lightyellow'],
+      [10,-160,2,'white'],[330,-320,3,'lightyellow']
+    ];
+    pensizeSet(1);
+    seedStars.forEach(([x,y,tam,col], idx)=>{
+      const phase = idx * 1.37;
+      const speed = 1.2 + (idx % 3) * 0.4;
+      const alpha = 0.35 + 0.65 * Math.abs(Math.sin(t * speed + phase));
+      go(x,y); color(col);
+      ctx.globalAlpha = alpha;
+      dot(tam);
+      ctx.globalAlpha = 1;
+    });
+
+    // Dedicatoria
+    go(0,-320); color('pink');
+    write('Para Alejandra', 'center', 'italic 30px Arial');
+    go(0,-360); color('white');
+    write('Con cariño', 'center', '14px Arial');
+  }
+
+  const startTime = performance.now();
+  function loop(now){
+    const t = (now - startTime) / 1000;
+    draw(t);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
